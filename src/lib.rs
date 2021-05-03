@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
+use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 use sha1::{Digest, Sha1};
 
@@ -33,9 +34,8 @@ impl Chainy {
         todo!()
     }
 
-    fn store(&self) {
-        let serialized = serde_json::to_string(&self).unwrap();
-        println!("serialized = {}", serialized);
+    pub fn store(&self, path: &str) {
+        fs::write(path, format!("{}", self)).unwrap();
     }
 
     fn load() -> Chainy {
