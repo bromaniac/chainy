@@ -22,7 +22,7 @@ impl Chainy {
     }
 
     pub fn entry(&self, data: String) {
-        unimplemented!()
+        todo!()
     }
 
     fn add_block(&mut self, b: Block) {
@@ -30,7 +30,7 @@ impl Chainy {
     }
 
     fn validate(&self) -> bool {
-        unimplemented!()
+        todo!()
     }
 
     fn store(&self) {
@@ -39,7 +39,7 @@ impl Chainy {
     }
 
     fn load() -> Chainy {
-        unimplemented!()
+        todo!()
     }
 }
 
