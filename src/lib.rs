@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::time::{SystemTime, UNIX_EPOCH};
 use sha1::{Digest, Sha1};
 
@@ -39,6 +40,13 @@ impl Chainy {
 
     fn load() -> Chainy {
         unimplemented!()
+    }
+}
+
+impl fmt::Display for Chainy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let serialized = serde_json::to_string(&self).unwrap();
+        write!(f, "{}", serialized)
     }
 }
 
@@ -100,6 +108,6 @@ mod tests {
     #[test]
     fn init() {
         let c = crate::Chainy::new();
-        c.store();
+        print!("{}", c);
     }
 }
