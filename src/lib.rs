@@ -94,7 +94,7 @@ impl Block {
 fn calculate_hash(offset: &u64, data: &str, timestamp: u64, previous_hash: &str) -> String {
     let mut hasher = Sha1::new();
 
-    let o = offset.to_owned().to_string();
+    let o = offset.to_string();
     let t = timestamp.to_string();
 
     hasher.update(o + data + &t + previous_hash);
