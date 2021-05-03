@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fs;
+use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
 use sha1::{Digest, Sha1};
 
@@ -38,8 +39,14 @@ impl Chainy {
         fs::write(path, format!("{}", self)).unwrap();
     }
 
-    fn load() -> Chainy {
-        todo!()
+    pub fn load(path: &str) -> Chainy {
+        let serialized = fs::read(path).unwrap();
+        let deserialized: Chainy = serde_json::from_str(str::from_utf8(&serialized).unwrap()).unwrap();
+        
+        match deserialized.validate() {
+            true => deserialized,
+            false => panic!("chain is not valid"),
+        }
     }
 }
 
