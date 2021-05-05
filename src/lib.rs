@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::{convert::TryInto, fmt};
+use sha1::{Digest, Sha1};
 use std::fs;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
-use sha1::{Digest, Sha1};
+use std::{convert::TryInto, fmt};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Chainy {
@@ -40,7 +40,25 @@ impl Chainy {
     }
 
     fn validate(&self) -> bool {
-        todo!()
+        for (i, b) in self.chain.iter().enumerate() {
+            match i {
+                0 => {
+                    match b.offset {
+                        0 => (),
+                        _ => panic!("first block should have offset 0"),
+                    };
+                    b.validate();
+                }
+                _ => {
+                    b.validate();
+                    match b.previous_hash == self.chain[i - 1].hash {
+                        true => (),
+                        false => panic!("previous hash doesn't match hash of previous block"),
+                    };
+                }
+            };
+        }
+        true
     }
 
     pub fn store(&self, path: &str) {
@@ -49,8 +67,9 @@ impl Chainy {
 
     pub fn load(path: &str) -> Chainy {
         let serialized = fs::read(path).unwrap();
-        let deserialized: Chainy = serde_json::from_str(str::from_utf8(&serialized).unwrap()).unwrap();
-        
+        let deserialized: Chainy =
+            serde_json::from_str(str::from_utf8(&serialized).unwrap()).unwrap();
+
         match deserialized.validate() {
             true => deserialized,
             false => panic!("chain is not valid"),
@@ -124,6 +143,7 @@ mod tests {
     fn init() {
         let mut c = crate::Chainy::new();
         c.entry("foo");
+        c.validate();
         print!("{}", c);
     }
 }
