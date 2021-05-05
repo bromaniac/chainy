@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::fmt;
+use std::{convert::TryInto, fmt};
 use std::fs;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -23,8 +23,16 @@ impl Chainy {
         }
     }
 
-    pub fn entry(&self, data: String) {
-        todo!()
+    pub fn entry(&mut self, data: &str) {
+        if data.len() > 64 {
+            panic!("too long");
+        }
+
+        let offset = (self.chain.len() + 1).try_into().unwrap();
+        let previous_hash = &self.chain.last().unwrap().hash;
+        let block = Block::new(offset, data.to_string(), previous_hash.to_string());
+
+        self.add_block(block);
     }
 
     fn add_block(&mut self, b: Block) {
@@ -114,7 +122,8 @@ fn calculate_hash(offset: &u64, data: &str, timestamp: u64, previous_hash: &str)
 mod tests {
     #[test]
     fn init() {
-        let c = crate::Chainy::new();
+        let mut c = crate::Chainy::new();
+        c.entry("foo");
         print!("{}", c);
     }
 }
