@@ -4,6 +4,7 @@ use std::fs;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{convert::TryInto, fmt};
+use thiserror::Error;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Chainy {
@@ -135,6 +136,16 @@ fn calculate_hash(offset: &u64, data: &str, timestamp: u64, previous_hash: &str)
 
     let result = hasher.finalize();
     format!("{:x}", result)
+}
+
+#[derive(Error, Debug)]
+pub enum ChainyError {
+    #[error("block is not valid")]
+    BlockNotValid,
+    #[error("chain is not valid")]
+    ChainNotValid,
+    #[error("block data is > 64 chars")]
+    DataTooLong,
 }
 
 #[cfg(test)]
