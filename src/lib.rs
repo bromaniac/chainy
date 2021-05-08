@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::{convert::TryInto, fmt};
 use thiserror::Error;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Chainy {
     chain: Vec<Block>,
 }
