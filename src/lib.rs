@@ -16,7 +16,7 @@ impl Chainy {
         let genesis = Block::new(
             0,
             "GENESIS".to_owned(),
-            "ce02dec31ca49f3c8f149b3b931a0155121d2ca0".to_owned(), //sha1 of GENESIS
+            r#"ce02dec31ca49f3c8f149b3b931a0155121d2ca0"#.to_owned(), //sha1 of GENESIS
         )?;
 
         Ok(Chainy {
@@ -42,24 +42,21 @@ impl Chainy {
     }
 
     fn validate(&self) -> Result<(), crate::ChainyError> {
-        for (i, b) in self.chain.iter().enumerate() {
-            match i {
-                0 => {
-                    match b.offset {
-                        0 => (),
-                        _ => panic!("first block should have offset 0"),
-                    };
-                    b.validate()?;
-                }
-                _ => {
-                    b.validate()?;
-                    match b.previous_hash == self.chain[i - 1].hash {
-                        true => (),
-                        false => panic!("previous hash doesn't match hash of previous block"),
-                    };
-                }
-            };
+        if self.chain[0].offset != 0 {
+            return Err(ChainyError::ChainNotValid);
         }
+        if self.chain[0].previous_hash != r#"ce02dec31ca49f3c8f149b3b931a0155121d2ca0"# {
+            return Err(ChainyError::ChainNotValid);
+        }
+        self.chain[0].validate()?;
+
+        for w in self.chain.windows(2).map(|w| w) {
+            w[1].validate()?;
+            if w[0].hash != w[1].previous_hash {
+                return Err(ChainyError::ChainNotValid);
+            }
+        }
+
         Ok(())
     }
 
