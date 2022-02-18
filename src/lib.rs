@@ -22,11 +22,12 @@
 
 use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
-use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{convert::TryInto, fmt};
-use std::{fs, time::SystemTimeError};
+use std::{fs, str};
 use thiserror::Error;
+
+type MyResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Chainy {
@@ -34,7 +35,7 @@ pub struct Chainy {
 }
 
 impl Chainy {
-    pub fn new() -> Result<Chainy, SystemTimeError> {
+    pub fn new() -> MyResult<Chainy> {
         let genesis = Block::new(
             0,
             "GENESIS".to_owned(),
@@ -46,7 +47,7 @@ impl Chainy {
         })
     }
 
-    pub fn entry(&mut self, data: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn entry(&mut self, data: &str) -> MyResult<()> {
         if data.len() > 64 {
             return Err(Box::new(ChainyError::DataTooLong));
         }
@@ -63,31 +64,31 @@ impl Chainy {
         self.chain.push(b);
     }
 
-    fn validate(&self) -> Result<(), crate::ChainyError> {
+    fn validate(&self) -> MyResult<()> {
         if self.chain[0].offset != 0 {
-            return Err(ChainyError::ChainNotValid);
+            return Err(Box::new(ChainyError::ChainNotValid));
         }
         if self.chain[0].previous_hash != r#"ce02dec31ca49f3c8f149b3b931a0155121d2ca0"# {
-            return Err(ChainyError::ChainNotValid);
+            return Err(Box::new(ChainyError::ChainNotValid));
         }
         self.chain[0].validate()?;
 
         for w in self.chain.windows(2).map(|w| w) {
             w[1].validate()?;
             if w[0].hash != w[1].previous_hash {
-                return Err(ChainyError::ChainNotValid);
+                return Err(Box::new(ChainyError::ChainNotValid));
             }
         }
 
         Ok(())
     }
 
-    pub fn store(&self, path: &str) -> Result<(), std::io::Error> {
+    pub fn store(&self, path: &str) -> MyResult<()> {
         fs::write(path, format!("{}", self))?;
         Ok(())
     }
 
-    pub fn load(path: &str) -> Result<Chainy, Box<dyn std::error::Error>> {
+    pub fn load(path: &str) -> MyResult<Chainy> {
         let serialized = fs::read(path)?;
         let deserialized: Chainy = serde_json::from_str(str::from_utf8(&serialized)?)?;
 
@@ -115,7 +116,7 @@ struct Block {
 }
 
 impl Block {
-    fn new(offset: u64, data: String, previous_hash: String) -> Result<Block, SystemTimeError> {
+    fn new(offset: u64, data: String, previous_hash: String) -> MyResult<Block> {
         let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
 
         let hash = calculate_hash(&offset, &data, timestamp, &previous_hash);
@@ -129,7 +130,7 @@ impl Block {
         })
     }
 
-    fn validate(&self) -> Result<(), crate::ChainyError> {
+    fn validate(&self) -> MyResult<()> {
         let hash = calculate_hash(
             &self.offset,
             &self.data,
@@ -138,7 +139,7 @@ impl Block {
         );
         match hash == self.hash {
             true => Ok(()),
-            false => Err(ChainyError::BlockNotValid),
+            false => Err(Box::new(ChainyError::BlockNotValid)),
         }
     }
 }
