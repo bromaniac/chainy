@@ -73,7 +73,7 @@ impl Chainy {
         }
         self.chain[0].validate()?;
 
-        for w in self.chain.windows(2).map(|w| w) {
+        for w in self.chain.windows(2) {
             w[1].validate()?;
             if w[0].hash != w[1].previous_hash {
                 return Err(Box::new(ChainyError::ChainNotValid));
